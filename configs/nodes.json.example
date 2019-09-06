@@ -1,0 +1,21 @@
+{
+  "privex": {
+    "host": "https://direct.steemd.privex.io",
+    "weight": 4,
+    "full": true,
+    "call_blacklist": ["get_block"]
+  },
+  "steemseed-se": {
+    "host": "https://steemseed-se.privex.io",
+    "full": false,
+    "plugins": [
+      "witness", "condenser_api", "network_broadcast_api", "rc_api",
+      "account_by_key", "database_api", "block_api"
+    ],
+    "call_whitelist": [
+      "get_block",
+      "get_accounts",
+      "get_witness_by_account"
+    ]
+  }
+}

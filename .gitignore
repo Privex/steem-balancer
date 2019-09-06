@@ -1,0 +1,4 @@
+venv/
+configs/nodes.json
+.env
+
