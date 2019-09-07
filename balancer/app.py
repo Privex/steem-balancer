@@ -16,18 +16,14 @@ Copyright::
 
 """
 import json
-from os.path import join
+from datetime import datetime
 from typing import Union
 from urllib.parse import urlparse
-
 from flask import Flask, request, jsonify
 from privex.helpers import empty
 from privex.jsonrpc import JsonRPC
 from werkzeug.exceptions import BadRequest
-
-from balancer.core import BASE_DIR
 import logging
-
 from balancer.node import find_endpoint, Endpoint
 
 log = logging.getLogger(__name__)
@@ -49,9 +45,18 @@ def extract_json(rq: request):
 
 @flask.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == 'GET':
+        if not request.form or len(request.form) == 0:
+            return jsonify(
+                status='OK',
+                datetime=str(datetime.utcnow()),
+                source_commit="000000",
+                jussi_num=0,
+                message='This is a Privex steem-balancer node. Fake Jussi data returned for compatibility reasons.'
+            )
     try:
         data = extract_json(request)
-        log.info('JSON Request: %s', data)
+        log.debug('JSON Request: %s', data)
         method = data['method']   # type: str
         params = data['params']   # type: Union[dict, list]
     except Exception as e:
