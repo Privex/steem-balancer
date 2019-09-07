@@ -26,7 +26,7 @@ from typing import Union
 import httpx
 from quart_cors import cors
 from quart import Quart, request, jsonify
-from privex.helpers import empty
+from privex.helpers import empty, retry_on_err
 from werkzeug.exceptions import BadRequest
 import logging
 
@@ -93,6 +93,7 @@ async def json_list_call(url, data: list, timeout=120):
     return response
 
 
+@retry_on_err()
 async def make_batch_call(method, data):
     if method == 'call':
         endpoint = find_endpoint('.'.join(data[0]['params'][:-1]))
