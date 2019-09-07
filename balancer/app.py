@@ -22,16 +22,15 @@ import math
 from datetime import datetime
 from json import JSONDecodeError
 from typing import Union
-from urllib.parse import urlparse
 
-import requests
-import quart.flask_patch
+import httpx
 from quart_cors import cors
 from quart import Quart, request, jsonify
 from privex.helpers import empty
-from privex.jsonrpc import JsonRPC, RPCException
 from werkzeug.exceptions import BadRequest
 import logging
+
+from balancer.core import MAX_BATCH, CHUNK_SIZE
 from balancer.node import find_endpoint, Endpoint
 
 log = logging.getLogger(__name__)
@@ -39,8 +38,6 @@ log = logging.getLogger(__name__)
 flask = Quart(__name__)
 cors(flask, allow_origin="*")
 loop = asyncio.get_event_loop()
-
-MAX_BATCH = 1000
 
 
 class EndpointException(BaseException):
@@ -60,7 +57,7 @@ async def extract_json(rq: request):
             return json.loads(data[0])
         raise e
 
-rs = requests.Session()
+rs = httpx.AsyncClient()
 
 
 async def json_call(url, method, params, jid=1, timeout=120):
@@ -75,7 +72,7 @@ async def json_call(url, method, params, jid=1, timeout=120):
     r = None
     try:
         log.debug('Sending JsonRPC request to %s with payload: %s', url, payload)
-        r = rs.post(url, data=json.dumps(payload), headers=headers, timeout=timeout)
+        r = await rs.post(url, data=json.dumps(payload), headers=headers, timeout=timeout)
         r.raise_for_status()
         response = r.json()
     except JSONDecodeError as e:
@@ -90,7 +87,7 @@ async def json_call(url, method, params, jid=1, timeout=120):
 
 async def json_list_call(url, data: list, timeout=120):
     headers = {'content-type': 'application/json'}
-    r = rs.post(url, data=json.dumps(data), headers=headers, timeout=timeout)
+    r = await rs.post(url, data=json.dumps(data), headers=headers, timeout=timeout)
     r.raise_for_status()
     response = r.json()
     return response
@@ -187,7 +184,8 @@ async def index():
             call_chunks = []
             for meth, rq in call_dict.items():
                 mcl = call_dict[meth]
-                chunk_size = math.ceil(len(mcl) / 40) if len(mcl) > 40 else 1
+
+                chunk_size = math.ceil(len(mcl) / CHUNK_SIZE) if len(mcl) > CHUNK_SIZE else 1
                 call_chunks += list(chunked(call_dict[meth], chunk_size))
 
             log.info(call_chunks)

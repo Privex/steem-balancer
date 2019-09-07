@@ -17,6 +17,7 @@ quart = "*"
 hypercorn = "*"
 flask-cors = "*"
 quart-cors = "*"
+httpx = "*"
 
 [requires]
 python_version = "3.7"

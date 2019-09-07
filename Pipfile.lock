@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "75d827d47aa6b0d6b1fdcb284db67ee4d2a52cf822a920070b5a7bbcba985df9"
+            "sha256": "284050e09854aa8d086fcfb20699b88dd2dbc0d24481b4ccdb5320a15ce3b813"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -76,10 +76,10 @@
         },
         "h11": {
             "hashes": [
-                "sha256:33d4bca7be0fa039f4e84d50ab00531047e53d6ee8ffbc83501ea602c169cae1",
-                "sha256:4bc6d6a1238b7615b266ada57e0618568066f57dd6fa967d1290ec9309b2f2f1"
+                "sha256:acca6a44cb52a32ab442b1779adf0875c443c689e9e028f8d831a3769f9c5208",
+                "sha256:f2b1ca39bfed357d1f19ac732913d5f9faa54a5062eca7d2ec3a916cfb7ae4c7"
             ],
-            "version": "==0.9.0"
+            "version": "==0.8.1"
         },
         "h2": {
             "hashes": [
@@ -94,6 +94,19 @@
                 "sha256:8eec9c1f4bfae3408a3f30500261f7e6a65912dc138526ea054f9ad98892e9d2"
             ],
             "version": "==3.0.0"
+        },
+        "hstspreload": {
+            "hashes": [
+                "sha256:8d2ceb09329e17a46e4a3c41d48494b6f0b368cf175c6b59a82443a3996e9822"
+            ],
+            "version": "==2019.9.3"
+        },
+        "httpx": {
+            "hashes": [
+                "sha256:3254b57b86ae01578a6cb86f976f596ad0bb766fdc8336629ed3c8a933bf7048"
+            ],
+            "index": "pypi",
+            "version": "==0.7.2"
         },
         "hypercorn": {
             "hashes": [
@@ -267,6 +280,13 @@
                 "sha256:9cf5292fcd0f598c671cfc1e0d7d1a7f13bb8085e9a590f48c010551dc6c4b31"
             ],
             "version": "==2.22.0"
+        },
+        "rfc3986": {
+            "hashes": [
+                "sha256:0344d0bd428126ce554e7ca2b61787b6a28d2bbd19fc70ed2dd85efe31176405",
+                "sha256:df4eba676077cefb86450c8f60121b9ae04b94f65f85b69f3f731af0516b7b18"
+            ],
+            "version": "==1.3.2"
         },
         "six": {
             "hashes": [

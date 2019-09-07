@@ -93,4 +93,5 @@ plugin_aliases = {
     'get_open_orders': 'market_history_api',
 }
 
-
+MAX_BATCH = int(env('MAX_BATCH', 3000))
+CHUNK_SIZE = int(env('CHUNK_SIZE', 40))
