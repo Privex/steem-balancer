@@ -65,10 +65,10 @@ cd "$DIR"
 
 case "$1" in
     dev*)
-        FLASK_ENV=development flask run
+        QUART_APP=wsgi FLASK_ENV=development ./wsgi.py
         ;;
     prod*)
-        pipenv run gunicorn -b "${HOST}:${PORT}" -w "$GU_WORKERS" wsgi
+        pipenv run hypercorn -b "${HOST}:${PORT}" -w "$GU_WORKERS" wsgi
         ;;
     *)
         echo "Runner script for Privex's Steem Load Balancer"

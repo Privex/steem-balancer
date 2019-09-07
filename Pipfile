@@ -13,6 +13,8 @@ python-dotenv = "*"
 privex-jsonrpc = "*"
 redis = "*"
 gunicorn = "*"
+quart = "*"
+hypercorn = "*"
 
 [requires]
 python_version = "3.7"

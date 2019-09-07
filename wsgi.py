@@ -18,8 +18,8 @@ Copyright::
 """
 from balancer import flask
 
-application = flask
+app = application = flask
 
 if __name__ == "__main__":
-    application.run()
+    app.run()
 
