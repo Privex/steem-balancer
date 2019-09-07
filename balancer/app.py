@@ -78,7 +78,8 @@ async def make_call(method, params):
 @flask.route('/', methods=['GET', 'POST'])
 async def index():
     if request.method == 'GET':
-        if not request.form or len(request.form) == 0:
+        frm = await request.form
+        if not frm or len(frm) == 0:
             return jsonify(
                 status='OK',
                 datetime=str(datetime.utcnow()),
