@@ -60,6 +60,7 @@ async def extract_json(rq: request):
 rs = httpx.AsyncClient()
 
 
+@retry_on_err()
 async def json_call(url, method, params, jid=1, timeout=120):
     headers = {'content-type': 'application/json'}
 
@@ -85,6 +86,7 @@ async def json_call(url, method, params, jid=1, timeout=120):
     return response
 
 
+@retry_on_err()
 async def json_list_call(url, data: list, timeout=120):
     headers = {'content-type': 'application/json'}
     r = await rs.post(url, data=json.dumps(data), headers=headers, timeout=timeout)
