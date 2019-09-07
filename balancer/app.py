@@ -92,9 +92,10 @@ async def json_list_call(url, data: list, timeout=120):
     r = await rs.post(url, data=json.dumps(data), headers=headers, timeout=timeout)
     r.raise_for_status()
     response = r.json()
-    for rl in response:
-        if 'error' in rl and type(rl['errpr']) is dict:
-            raise Exception('Result contains error')
+    if type(response) is list:
+        for rl in response:
+            if 'error' in rl and type(rl['error']) is dict:
+                raise Exception('Result contains error')
     return response
 
 
