@@ -76,7 +76,7 @@ def index():
         else:
             raise BadRequest('JSON Params was neither dict nor list...')
 
-        resp = jsonify(res)
+        resp = jsonify(jsonrpc='2.0', result=res, id=data.get('id', 1))
         resp.headers['X-Upstream'] = endpoint.host if empty(endpoint.name) else endpoint.name
         return resp
     except BadRequest:
