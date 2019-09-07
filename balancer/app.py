@@ -40,7 +40,7 @@ flask = Quart(__name__)
 cors(flask, allow_origin="*")
 loop = asyncio.get_event_loop()
 
-MAX_BATCH = 200
+MAX_BATCH = 1000
 
 
 class EndpointException(BaseException):
@@ -187,7 +187,7 @@ async def index():
             call_chunks = []
             for meth, rq in call_dict.items():
                 mcl = call_dict[meth]
-                chunk_size = math.ceil(len(mcl) / 20) if len(mcl) > 20 else 1
+                chunk_size = math.ceil(len(mcl) / 40) if len(mcl) > 40 else 1
                 call_chunks += list(chunked(call_dict[meth], chunk_size))
 
             log.info(call_chunks)
