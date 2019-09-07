@@ -240,7 +240,7 @@ def find_endpoint(rcall: str) -> Endpoint:
     return weighted_endpoints[selection]
 
 
-@r_cache('stmnodes:{}')
+@r_cache(lambda rcall: f'stmnodes:{rcall}')
 def weight_endpoint(rcall):
     endpoints = get_nodes()
     weighted_endpoints = []
