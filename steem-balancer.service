@@ -24,7 +24,7 @@ User=stmbal
 WorkingDirectory=/home/stmbal/steem-balancer/
 EnvironmentFile=/home/stmbal/steem-balancer/.env
 
-ExecStart=/home/stmbal/steem-balancer/run.sh server
+ExecStart=/home/stmbal/steem-balancer/run.sh prod
 
 Restart=always
 Environment=PYTHONUNBUFFERED=0
