@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 cf = {}
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-load_dotenv(BASE_DIR)
+load_dotenv()
 
 DEBUG = cf['DEBUG'] = env_bool('DEBUG', False)
 

@@ -25,6 +25,8 @@ from typing import Union
 from urllib.parse import urlparse
 
 import requests
+import quart.flask_patch
+from quart_cors import cors
 from quart import Quart, request, jsonify
 from privex.helpers import empty
 from privex.jsonrpc import JsonRPC, RPCException
@@ -35,6 +37,7 @@ from balancer.node import find_endpoint, Endpoint
 log = logging.getLogger(__name__)
 
 flask = Quart(__name__)
+cors(flask, allow_origin="*")
 loop = asyncio.get_event_loop()
 
 MAX_BATCH = 200
@@ -93,10 +96,11 @@ async def json_list_call(url, data: list, timeout=120):
     return response
 
 
-
-
 async def make_batch_call(method, data):
-    endpoint = find_endpoint(method)  # type: Endpoint
+    if method == 'call':
+        endpoint = find_endpoint('.'.join(data[0]['params'][:-1]))
+    else:
+        endpoint = find_endpoint(method)  # type: Endpoint
     try:
         return await json_list_call(endpoint.host, data), endpoint
     except Exception as e:
@@ -106,7 +110,9 @@ async def make_batch_call(method, data):
 
 
 async def make_call(method, params, jid=1):
-    endpoint = find_endpoint(method)  # type: Endpoint
+    if method == 'call':
+        _method = '.'.join(params[:-1])
+    endpoint = find_endpoint(_method)  # type: Endpoint
     # uri = urlparse(endpoint.host)
     # port = uri.port if uri.port is not None else 443 if uri.scheme == 'https' else 80
 
@@ -170,7 +176,9 @@ async def index():
             # data = [data]
             method = data['method']  # type: str
             params = data.get('params', [])  # type: Union[dict, list]
-            call_list = [make_call(method=method, params=params)]
+
+            log.debug('Method: %s Params: %s', method, params)
+            call_list = [make_call(method=method, params=params, jid=data.get('id', 1))]
         elif type(data) is list:
             if len(data) > MAX_BATCH:
                 return jsonify(error=True, message=f"Too many batch calls. Max batch calls is: {MAX_BATCH}")
@@ -203,10 +211,12 @@ async def index():
         call_res = await asyncio.gather(*call_list)
         if len(call_res) == 1:
             res, endpoint = call_res[0]
-            resp = jsonify(jsonrpc='2.0', result=res, id=res.get('id', 1))
+            log.debug('Returning response: %s', res)
+            resp = jsonify(res)
             resp.headers['X-Upstream'] = endpoint.host if empty(endpoint.name) else endpoint.name
         else:
             res = [r[0] for i, r in enumerate(call_res)]
+            log.debug('Returning response: %s', res)
             resp = jsonify(res)
             resp.headers['X-Upstream'] = 'Unknown due to batch call.'
         # resp = jsonify(jsonrpc='2.0', result=res, id=data.get('id', 1))
