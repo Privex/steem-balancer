@@ -116,7 +116,7 @@ async def make_batch_call(method, data):
 async def make_call(method, params, jid=1):
     _method = method
     if method == 'call':
-        _method = '.'.join(params[:-1])
+        _method = '.'.join(list(params[:-1]))
     endpoint = find_endpoint(_method)  # type: Endpoint
     # uri = urlparse(endpoint.host)
     # port = uri.port if uri.port is not None else 443 if uri.scheme == 'https' else 80
