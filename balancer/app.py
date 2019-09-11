@@ -74,10 +74,14 @@ async def json_call(url, method, params, jid=1, timeout=120, retries=0):
         }
         r = None
         try:
-            log.debug('Sending JsonRPC request to %s with payload: %s', url, payload)
+            #log.debug('Sending JsonRPC request to %s with payload: %s', url, payload)
             r = await rs.post(url, data=json.dumps(payload), headers=headers, timeout=timeout)
             r.raise_for_status()
             response = r.json()
+            if type(response) is dict:
+                rl = response
+                if 'error' in rl and type(rl['error']) is dict:
+                    raise Exception('Result contains error')
         except JSONDecodeError as e:
             log.warning('JSONDecodeError while querying %s', url)
             log.warning('Params: %s', params)
@@ -106,6 +110,11 @@ async def json_list_call(url, data: list, timeout=120, retries=0):
                     raise Exception('Result contains error')
                 if 'error' in rl and type(rl['error']) is dict:
                     raise Exception('Result contains error')
+        if type(response) is dict:
+            rl = response
+            if 'error' in rl and type(rl['error']) is dict:
+                raise Exception('Result contains error')
+            
         return response
     except Exception as e:
         retries += 1
@@ -190,7 +199,7 @@ async def index():
             )
     try:
         data = await extract_json(request)
-        log.debug('JSON Request: %s', data)
+        #log.debug('JSON Request: %s', data)
 
         if type(data) is dict:
             # data = [data]
@@ -210,7 +219,7 @@ async def index():
                 chunk_size = math.ceil(len(mcl) / CHUNK_SIZE) if len(mcl) > CHUNK_SIZE else 1
                 call_chunks += list(chunked(call_dict[meth], chunk_size))
 
-            log.info(call_chunks)
+            #log.info(call_chunks)
 
             call_list = []
             for c in call_chunks:
@@ -238,8 +247,9 @@ async def index():
         else:
             res = []
             for i, r in enumerate(call_res):
-                res += r[0] 
-            log.debug('Returning response: %s', res)
+                res += r[0] if type(r[0]) is list else [r[0]] 
+                # print('res 0 type is:', type(r[0]), 'res length is:', len(r))
+            #log.debug('Returning response: %s', res)
             resp = jsonify(res)
             resp.headers['X-Upstream'] = 'Unknown due to batch call.'
         # resp = jsonify(jsonrpc='2.0', result=res, id=data.get('id', 1))
