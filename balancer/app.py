@@ -29,7 +29,7 @@ from quart import Quart, request, jsonify
 from privex.helpers import empty, retry_on_err
 from werkzeug.exceptions import BadRequest
 import logging
-
+from asyncio import sleep
 from balancer.core import MAX_BATCH, CHUNK_SIZE
 from balancer.node import find_endpoint, Endpoint
 
@@ -38,6 +38,8 @@ log = logging.getLogger(__name__)
 flask = Quart(__name__)
 cors(flask, allow_origin="*")
 loop = asyncio.get_event_loop()
+MAX_RETRY = 10
+RETRY_DELAY = 3
 
 
 class EndpointException(BaseException):
@@ -60,46 +62,59 @@ async def extract_json(rq: request):
 rs = httpx.AsyncClient()
 
 
-@retry_on_err()
-async def json_call(url, method, params, jid=1, timeout=120):
-    headers = {'content-type': 'application/json'}
-
-    payload = {
-        "method": method,
-        "params": params,
-        "jsonrpc": "2.0",
-        "id": jid,
-    }
-    r = None
+async def json_call(url, method, params, jid=1, timeout=120, retries=retries):
     try:
-        log.debug('Sending JsonRPC request to %s with payload: %s', url, payload)
-        r = await rs.post(url, data=json.dumps(payload), headers=headers, timeout=timeout)
+        headers = {'content-type': 'application/json'}
+
+        payload = {
+            "method": method,
+            "params": params,
+            "jsonrpc": "2.0",
+            "id": jid,
+        }
+        r = None
+        try:
+            log.debug('Sending JsonRPC request to %s with payload: %s', url, payload)
+            r = await rs.post(url, data=json.dumps(payload), headers=headers, timeout=timeout)
+            r.raise_for_status()
+            response = r.json()
+        except JSONDecodeError as e:
+            log.warning('JSONDecodeError while querying %s', url)
+            log.warning('Params: %s', params)
+            t = r.text.decode('utf-8') if type(r.text) is bytes else str(r.text)
+            log.warning('Raw response data was: %s', t)
+            raise e
+
+        return response
+    except Exception as e:
+        retries += 1
+        if retries > MAX_RETRY: raise e
+        log.warning('Error while calling json_call - retry %s out of %s', retries, MAX_RETRY)
+        await sleep(RETRY_DELAY)
+        return await json_call(url=url, method=method, params=params, jid=jid, timeout=timeout, retries=retries)
+
+
+async def json_list_call(url, data: list, timeout=120, retries=0):
+    try:
+        headers = {'content-type': 'application/json'}
+        r = await rs.post(url, data=json.dumps(data), headers=headers, timeout=timeout)
         r.raise_for_status()
         response = r.json()
-    except JSONDecodeError as e:
-        log.warning('JSONDecodeError while querying %s', url)
-        log.warning('Params: %s', params)
-        t = r.text.decode('utf-8') if type(r.text) is bytes else str(r.text)
-        log.warning('Raw response data was: %s', t)
-        raise e
-
-    return response
-
-
-@retry_on_err()
-async def json_list_call(url, data: list, timeout=120):
-    headers = {'content-type': 'application/json'}
-    r = await rs.post(url, data=json.dumps(data), headers=headers, timeout=timeout)
-    r.raise_for_status()
-    response = r.json()
-    if type(response) is list:
-        for rl in response:
-            if 'error' in rl and type(rl['error']) is dict:
-                raise Exception('Result contains error')
-    return response
+        if type(response) is list:
+            for rl in response:
+                if type(rl) is str and rl == 'error':
+                    raise Exception('Result contains error')
+                if 'error' in rl and type(rl['error']) is dict:
+                    raise Exception('Result contains error')
+        return response
+    except Exception as e:
+        retries += 1
+        if retries > MAX_RETRY: raise e
+        log.warning('Error while calling json_list_call - retry %s out of %s', retries, MAX_RETRY)
+        await sleep(RETRY_DELAY)
+        return await json_list_call(url=url, data=data, timeout=timeout, retries=retries)
 
 
-@retry_on_err()
 async def make_batch_call(method, data):
     if method == 'call':
         endpoint = find_endpoint('.'.join(data[0]['params'][:-1]))
