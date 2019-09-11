@@ -62,7 +62,7 @@ async def extract_json(rq: request):
 rs = httpx.AsyncClient()
 
 
-async def json_call(url, method, params, jid=1, timeout=120, retries=retries):
+async def json_call(url, method, params, jid=1, timeout=120, retries=0):
     try:
         headers = {'content-type': 'application/json'}
 
