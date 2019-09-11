@@ -221,7 +221,9 @@ async def index():
             resp = jsonify(res)
             resp.headers['X-Upstream'] = endpoint.host if empty(endpoint.name) else endpoint.name
         else:
-            res = [r[0] for i, k in enumerate(call_res) for i, r in enumerate(k)]
+            res = []
+            for i, r in enumerate(call_res):
+                res += r[0] 
             log.debug('Returning response: %s', res)
             resp = jsonify(res)
             resp.headers['X-Upstream'] = 'Unknown due to batch call.'
